@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Website</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'myapp/common/css/style.css' %}">
+</head>
+<style>
+    .full-width-footer {
+        background-color: #333; /* Set the background color of the footer */
+        color: #fff; /* Set the text color of the footer */
+        text-align: center;
+        padding: 10px; /* Add padding to the footer content */
+        position: fixed; /* Fix the position at the bottom of the viewport */
+        width: 100%; /* Make the footer full-width */
+        bottom: 0; /* Position at the bottom */
+    }
+</style>
+<body>
+
+<nav>
+    <a href="{% url 'home' %}">Home</a>
+    <a href="{% url 'leaderboards' %}">Leaderboards</a>
+    <a href="{% url 'about' %}">About</a>
+    <a href="{% url 'contact' %}">Contact</a>
+
+    <!-- Logo Container -->
+    <div class="logo-container">
+        <img src="{% static 'myapp/common/img/reforged_logo_cropped.png' %}" alt="Your Logo">
+    </div>    
+</nav>
+
+<!-- Your page content goes here -->
+<div class="content-container">
+    {% block content %}{% endblock %}
+</div>
+
+<div class="bottom-text-container">
+    <!-- Your text content here -->
+    This is the bottom text.
+</div>
+
+</body>
+</html>

@@ -1,0 +1,401 @@
+{% extends 'myapp/common/base.html' %}
+{% load static %}
+{% block content %}
+    <div id="playerBattletag" class="leaderboard-header">
+        <h1 id="player-battletag">{{ player.battleTag }}</h1>
+    </div>
+
+    <!-- Container for profile picture and entries -->
+    <div id="profile-container" class="profile-container">
+
+        <div id="wallpaper-container" class="wallpaper-container"></div>
+        <img src="{% static 'myapp/common/img/Portraits/p003.png' %}" alt="Profile Picture" id="profile-picture">
+        <div id="summary-container" class="summary-container"></div>
+
+    </div>
+
+
+        <!-- Container for player entries -->
+    <div id="entry-container" class="centered-container">
+            <!-- Player entries will be dynamically populated using JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        var last_avatarId = "{{ player.last_avatarId }}";
+        var imagePath = (last_avatarId.trim() === "") ? '{% static "myapp/common/img/Portraits/p003.png" %}' : `{% static "myapp/common/img/Portraits/" %}${last_avatarId}.png`;
+        document.getElementById('profile-picture').src = imagePath;
+        
+        var [username, tag] = '{{ player.battleTag }}'.split('#');
+        var getPlayerDataURL = '{% url "get_player_data" %}?username=' + encodeURIComponent(username) + '&tag=' + encodeURIComponent(tag);
+        fetch(getPlayerDataURL)
+            .then(response => response.json())
+            .then(responseData => {
+                //console.log(responseData);  // Corrected line
+                var entriesContainer = document.getElementById('entry-container');
+
+                var getPlayerSummaryDataURL = '{% url "get_highest_season_number" %}';
+                fetch(getPlayerSummaryDataURL)
+                    .then(response => response.json())
+                    .then(responseData2 => {
+                        var highest_season_number = responseData2;
+                        //console.log(highest_season_number);
+
+                        // Calculate player summary
+                        var playerEntries = responseData;  // Assuming responseData contains the player entries
+                        var summary = get_player_summary(playerEntries, highest_season_number);
+
+                        // Display summary in the HTML
+                        displaySummaryInHTML(summary);
+
+                        // Create column names row
+                        var columnNamesDiv = document.createElement('div');
+                        columnNamesDiv.className = 'entry-card';
+                        columnNamesDiv.innerHTML = `
+                            <div class="column-name rank_left">Rank</div>
+                            <div class="column-name division-avatars"></div>
+                            <div class="column-name avatars-battle-tags">BattleTags</div>
+                            <div class="column-name race">Race</div>
+                            <div class="column-name wins">Wins</div>
+                            <div class="column-name losses">Losses</div>
+                            <div class="column-name draws">Draws</div>
+                            <div class="column-name win-loss-ratio">W/L</div>
+                            <div class="column-name gamemode">Mode</div>
+                            <div class="column-name mmr">MMR</div>
+                            <div class="column-name datetime">Datetime</div>
+                        `;
+                        entriesContainer.appendChild(columnNamesDiv);
+
+                        // Declare currentSeason variable
+                        var currentSeason = null;
+
+                        // Iterate through the entries and append them to the container
+                        responseData.forEach(entryData => {
+                            // Check if the season has changed
+                            if (entryData.season !== currentSeason) {
+                                // Create and append a div for the season number
+                                var seasonDiv = document.createElement('div');
+                                seasonDiv.className = 'season bold-text neonText';  // Added 'bold-text' class
+                                seasonDiv.textContent = `Season ${entryData.season}`;
+                                entriesContainer.appendChild(seasonDiv);
+
+                                // Update the current season
+                                currentSeason = entryData.season;
+                            }
+
+                            var entryDiv = document.createElement('div');
+                            entryDiv.className = 'entry-card race';
+                            entryDiv.classList.add(entryData.race.toLowerCase());
+
+                            // Create individual column divs
+                            createRankLeftDiv(entryDiv, entryData);
+                            createDivisionAvatarsDiv(entryDiv, entryData);
+                            createAvatarsBattleTagsDiv(entryDiv, entryData);
+                            createRaceDiv(entryDiv, entryData);
+                            createWinsDiv(entryDiv, entryData);
+                            createLossesDiv(entryDiv, entryData);
+                            createDrawsDiv(entryDiv, entryData);
+                            createWinLossRatioDiv(entryDiv, entryData);
+                            createGameMode(entryDiv, entryData)
+                            createMmrDiv(entryDiv, entryData);
+                            createDateTime(entryDiv, entryData) 
+                            entriesContainer.appendChild(entryDiv);
+
+                    });
+                });
+            })
+            .catch(error => {
+                //console.error('Error fetching player entries:', error);
+            });
+
+        function createRankLeftDiv(entryDiv, entryData) {
+            var rankLeftDiv = document.createElement('div');
+            rankLeftDiv.className = 'rank';
+            rankLeftDiv.textContent = entryData.rank;
+            entryDiv.appendChild(rankLeftDiv);
+        }
+
+        function createDivisionAvatarsDiv(entryDiv, entryData) {
+            var divisionElement = document.createElement('img');
+            divisionElement.className = 'division-avatars';
+            divisionElement.src = `/static/myapp/common/img/Ranked/simplified/rankedBadge_simplified_${entryData.division}.png`;
+            entryDiv.appendChild(divisionElement);
+        }
+
+        function createAvatarsBattleTagsDiv(entryDiv, entryData) {
+            var avatarsBattleTagsDiv = document.createElement('div');
+            avatarsBattleTagsDiv.className = 'avatars-battle-tags';
+
+            var avatarIds = entryData.player_avatars.replace(/['\[\]]/g, '').split(', ');
+            var battleTags = entryData.player_battle_tags.split(', ');
+
+            for (var i = 0; i < Math.max(avatarIds.length, battleTags.length); i++) {
+                var avatarId = avatarIds[i] || '';
+                var battleTag = battleTags[i] || '';
+                
+                var [username, tag] = battleTag.split('#');
+                var avatarBattleTagContainer = document.createElement('a');
+                avatarBattleTagContainer.className = 'avatar-battle-tag-container';
+
+                avatarBattleTagContainer.href = `/player/${encodeURIComponent(username)}/${encodeURIComponent(tag)}/`;
+
+                var avatarElement = document.createElement('img');
+                var imagePath = (avatarId.trim() === "") ? `/static/myapp/common/img/Portraits/p003.png` : `/static/myapp/common/img/Portraits/${avatarId}.png`;
+
+                avatarElement.src = imagePath;
+                avatarElement.className = 'avatars';
+                avatarBattleTagContainer.appendChild(avatarElement);
+
+                var battleTagDiv = document.createElement('div');
+                battleTagDiv.className = 'battle-tag';
+                battleTagDiv.textContent = battleTag;
+                avatarBattleTagContainer.appendChild(battleTagDiv);
+                avatarsBattleTagsDiv.appendChild(avatarBattleTagContainer);
+            }
+            
+            entryDiv.appendChild(avatarsBattleTagsDiv);
+        }
+
+        function createRaceDiv(entryDiv, entryData) {
+            var raceDiv = document.createElement('div');
+            raceDiv.className = 'race ' + entryData.race.toLowerCase();
+            raceDiv.classList.add(entryData.race.toLowerCase());
+            raceDiv.textContent = formatRace(entryData.race);
+            entryDiv.appendChild(raceDiv);
+        }
+
+        function createWinsDiv(entryDiv, entryData) {
+            var winsDiv = document.createElement('div');
+            winsDiv.className = 'column-content wins';
+            winsDiv.textContent = entryData.wins;
+            entryDiv.appendChild(winsDiv);
+        }
+
+        function createLossesDiv(entryDiv, entryData) {
+            var lossesDiv = document.createElement('div');
+            lossesDiv.className = 'column-content losses';
+            lossesDiv.textContent = entryData.losses;
+            entryDiv.appendChild(lossesDiv);
+        }
+
+        function createDrawsDiv(entryDiv, entryData) {
+            var drawsDiv = document.createElement('div');
+            drawsDiv.className = 'column-content draws';
+            drawsDiv.textContent = entryData.draws;
+            entryDiv.appendChild(drawsDiv);
+        }
+
+        function createWinLossRatioDiv(entryDiv, entryData) {
+            var winLossRatioDiv = document.createElement('div');
+            winLossRatioDiv.className = 'column-content win-loss-ratio';
+            var winLossRatio = calculateWinLossRatio(entryData.wins, entryData.losses);
+            winLossRatioDiv.textContent = `${winLossRatio}`;
+
+            if (winLossRatio < 1) {
+                winLossRatioDiv.style.backgroundColor = 'red';
+            } else if (Math.abs(winLossRatio - 1) < 0.01) {
+                winLossRatioDiv.style.backgroundColor = 'orange';
+            } else {
+                winLossRatioDiv.style.backgroundColor = 'green';
+            }
+
+            entryDiv.appendChild(winLossRatioDiv);
+        }
+
+        function createMmrDiv(entryDiv, entryData) {
+            var mmrDiv = document.createElement('div');
+            mmrDiv.className = 'column-content mmr';
+            mmrDiv.textContent = entryData.mmr;
+            entryDiv.appendChild(mmrDiv);
+        }
+
+        function createDateTime(entryDiv, entryData) {
+            var DateTimeDiv = document.createElement('div');
+            DateTimeDiv.className = 'column-name datetime';
+
+            // Parse the date string
+            var date = new Date(entryData.created_at);
+
+            // Format the date components
+            var dayMonthYear = date.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: '2-digit' });
+            var time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            var timeZone = date.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ')[2];
+
+            // Combine components with line breaks
+            var formattedDateTime = `${dayMonthYear}\n${time}\n${timeZone}`;
+
+            // Set text content with line breaks
+            DateTimeDiv.textContent = formattedDateTime;
+
+            // Add white-space pre-line to display line breaks
+            DateTimeDiv.style.whiteSpace = 'pre-line';
+
+            entryDiv.appendChild(DateTimeDiv);
+        }
+
+        function createGameMode(entryDiv, entryData) {
+            var gamemodeDiv = document.createElement('div');
+            gamemodeDiv.className = 'column-name gamemode';
+
+            if (entryData.gamemode === '2v2arranged') {
+                gamemodeDiv.textContent = '2v2AR';
+            } 
+            
+            else if (entryData.gamemode === '3v3arranged') {
+                gamemodeDiv.textContent = '3v3AR';
+            } 
+            
+            else if (entryData.gamemode === '4v4arranged') {
+                gamemodeDiv.textContent = '4v4AR';
+            } 
+            
+            else {
+                gamemodeDiv.textContent = entryData.gamemode;
+            }
+
+            entryDiv.appendChild(gamemodeDiv);
+        }
+
+        // TOOLS
+
+        function calculateWinLossRatio(wins, losses) {
+            wins = parseInt(wins);
+            losses = parseInt(losses);
+
+            if (losses === 0) {
+                return '∞';
+            } else {
+                var ratio = (wins / losses).toFixed(2);
+                return ratio;
+            }
+        }
+
+        function formatRace(race) {
+            return race.replace(/_/g, ' ').replace(/\w\S*/g, function (word) {
+                return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+            });
+        }
+
+        function displaySummaryInHTML(summary) {
+            // Assuming you have an element with id 'wallpaper-container' to set the background image
+            var wallpaperContainer = document.getElementById('wallpaper-container');
+
+            // Set the background image of the wallpaper container
+            wallpaperContainer.style.backgroundImage = `url(${summary['Current Highest Rank']})`;
+
+            // Assuming you have an element with id 'summary-container' to display the summary
+            var summaryContainer = document.getElementById('summary-container');
+
+            // Clear previous content
+            summaryContainer.innerHTML = '';
+
+            // Create a table for displaying stats
+            var summaryTable = document.createElement('table');
+            summaryTable.className = 'summary-table';
+
+            // Add rows for each specific key
+            addRowToTable(summaryTable, 'Most Played Gamemode', summary['Most Played Gamemode']);
+            addRowToTable(summaryTable, 'Lifetime Win/Loss Ratio', summary['Lifetime Win/Loss Ratio']);
+            addRowToTable(summaryTable, 'Most Played Race', formatRace(summary['Most Played Race']));
+            addRowToTable(summaryTable, 'Lifetime Games Played', summary['Lifetime Games Played']);
+
+            // Append the table to the container
+            summaryContainer.appendChild(summaryTable);
+
+            function addRowToTable(table, key, value) {
+                var row = table.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+
+                // Set a specific width for the first column
+                cell1.style.width = '200px'; // Adjust the pixel value as needed
+
+                // Add padding to the cells
+                cell1.style.paddingRight = '10px'; // Adjust the pixel value as needed
+                cell2.style.paddingLeft = '10px';  // Adjust the pixel value as needed
+
+                // Add a CSS class to align content to the left
+                cell1.className = 'left-align';
+                cell2.className = 'left-align';
+
+                cell1.textContent = key;
+                cell2.textContent = value;
+            }
+        }
+
+
+
+        function get_player_summary(player_entries, highest_season_number) {
+            var summary_rows = {
+                'Lifetime Games Played': calculate_lifetime_games_played(player_entries),
+                'Lifetime Win/Loss Ratio': calculate_lifetime_win_loss_ratio(player_entries),
+                'Most Played Race': calculate_most_played_race(player_entries),
+                'Most Played Gamemode': calculate_most_played_gamemode(player_entries),
+                'Current Highest Rank': get_highest_rank_image_path(player_entries, highest_season_number)
+            };
+
+            return summary_rows;
+
+            function calculate_lifetime_games_played(player_entries) {
+                return player_entries.reduce((total, entry) => total + entry.wins + entry.losses, 0);
+            }
+
+            function calculate_lifetime_win_loss_ratio(player_entries) {
+                var totalWins = player_entries.reduce((total, entry) => total + entry.wins, 0);
+                var totalLosses = player_entries.reduce((total, entry) => total + entry.losses, 0);
+
+                if (totalLosses === 0) {
+                    return '∞';
+                } else {
+                    return (totalWins / totalLosses).toFixed(2);
+                }
+            }
+
+            function calculate_most_played_race(player_entries) {
+                var raceCounts = {};
+                player_entries.forEach(entry => {
+                    var race = entry.race.toLowerCase();
+                    raceCounts[race] = (raceCounts[race] || 0) + 1;
+                });
+                return Object.keys(raceCounts).reduce((a, b) => raceCounts[a] > raceCounts[b] ? a : b);
+            }
+
+            function calculate_most_played_gamemode(player_entries) {
+                var gamemodeCounts = {};
+                player_entries.forEach(entry => {
+                    var gamemode = entry.gamemode.toLowerCase();
+                    gamemodeCounts[gamemode] = (gamemodeCounts[gamemode] || 0) + 1;
+                });
+                return Object.keys(gamemodeCounts).reduce((a, b) => gamemodeCounts[a] > gamemodeCounts[b] ? a : b);
+            }
+
+            function get_highest_rank_image_path(player_entries, highest_season_number) {
+               
+                // Get entries for the highest season
+                var highest_season_entries = player_entries.filter(entry => parseInt(entry.season) === highest_season_number["highest_season"]);
+
+                if (!highest_season_entries.length) {
+                    // If there are no entries for the highest season, return the default image path
+                    return '/static/myapp/common/img/Ranked/full_size/rankedBadge_0.png';
+                }
+
+                // Find the entry with the highest MMR in the highest season
+                var highest_mmr_entry = highest_season_entries.reduce((max, entry) => (entry.mmr > max.mmr ? entry : max), highest_season_entries[0]);
+
+                // Get the division number from the highest MMR entry
+                var division_number = highest_mmr_entry.division;
+
+                // Return the image path based on the division number
+                return `/static/myapp/common/img/Ranked/full_size/rankedBadge_${division_number}.png`;
+            }
+        }
+
+        function formatRace(race) {
+            return race.replace(/_/g, ' ').replace(/\w\S*/g, function (word) {
+                return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+            });
+        }
+   </script>
+
+
+{% endblock %}

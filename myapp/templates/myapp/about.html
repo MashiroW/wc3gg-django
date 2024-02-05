@@ -1,0 +1,88 @@
+<!-- templates/myapp/about.html -->
+{% extends 'myapp/common/base.html' %}
+
+{% block content %}
+    <div class="leaderboard-header">
+        <h1>About</h1>
+    </div>
+
+    <br>
+
+    <!-- Q&A Section -->
+    <div class="qa-section">
+        <div class="qa-item" onclick="toggleAnswer('q1')">
+            <div class="question">Q: I have two entries for the same season, race, gamemode, and even the same DateTime, why?</div>
+            <div class="answer" id="q1" style="max-height: 0; overflow: hidden;">A: This problem is on Blizzard's end, you yourself can even reproduce that bug in the in-game scoreboard if you pay attention to what's on your screen, sometimes players can have several entries for the same season, race, and gamemode. Unfortunately, their bug isn't some UI bug as I wished it to be since the packet carrying the data contains some of these absurd entries. Maybe in the future if I add the possibility to create accounts on the website and login with your Blizzard account, I'll add a possibility for the account owner to report these outliers on their profile.</div>
+        </div>
+
+        <!-- Q&A Item 2 -->
+        <div class="qa-item" onclick="toggleAnswer('q2')">
+            <div class="question">Q: How come there's only a few entries on Season 3?</div>
+            <div class="answer" id="q2" style="max-height: 0; overflow: hidden;">A: That's because I was developing my solution during Season 3 and when it was over I got to know that the in-game option to browse the previous season's data is some absolute top-tier garbage as 95% of it is gone from the game itself for some reason. The most meaningful data I could save for Season 3 was the one for the 1v1 mode as it's the 'sample' I've been using when testing and developing my solution.</div>
+        </div>
+
+        <!-- Q&A Item 3 -->
+        <div class="qa-item" onclick="toggleAnswer('q3')">
+            <div class="question">Q: How many persons have been working on this project and how long did it take you?</div>
+            <div class="answer" id="q3" style="max-height: 0; overflow: hidden;">A: I worked alone on it out of a berserker rage burst after witnessing the current state of WC3's leaderboard :/. It took me 1 week to reverse engineer how to capture the data and 2 weeks to develop the website.</div>
+        </div>
+
+        <!-- Q&A Item 4 -->
+        <div class="qa-item" onclick="toggleAnswer('q4')">
+            <div class="question">Q: Can I support your work?</div>
+            <div class="answer" id="q4" style="max-height: 0; overflow: hidden;">A: Yes, you can do so by mentioning the existence of this website or donating an amount of your choice on Paypal or check my other projects <a href="https://linktr.ee/Mashirow">here</a>.</div>
+        </div>
+    </div>
+
+    <style>
+        .qa-section {
+            margin-top: 20px;
+            width: 75%;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center; /* Center the items */
+        }
+
+        .qa-item {
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            overflow: hidden;
+            position: relative;
+            font-weight: bold;
+        }
+
+        .qa-item:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .answer {
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            margin-top: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 20px;
+            padding-left: 10px;
+            padding-right: 10px;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .qa-item.open .answer {
+            max-height: 1000px; /* Adjust to a sufficiently large value */
+            transition: max-height 0.5s ease;
+        }
+    </style>
+
+    <script>
+        function toggleAnswer(id) {
+            var answer = document.getElementById(id);
+            var height = answer.scrollHeight;
+            answer.style.maxHeight = answer.style.maxHeight === '0px' ? height + 'px' : '0px';
+        }
+    </script>
+{% endblock %}

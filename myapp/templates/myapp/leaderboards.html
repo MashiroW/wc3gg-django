@@ -1,0 +1,334 @@
+<!-- templates/myapp/leaderboards.html -->
+{% extends 'myapp/common/base.html' %}
+{% block content %}
+
+    <div class="leaderboard-header">
+        <h1>Leaderboards</h1>
+    </div>
+
+    <div id="filters-container" class="custom-filters">
+        <div class="filter">
+            <label for="season-filter">Season:</label>
+            <select id="season-filter">
+                {% for season in seasons %}
+                    <option value="{{ season }}">{{ season }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    
+        <div class="filter">
+            <label for="gamemode-filter">Gamemode:</label>
+            <select id="gamemode-filter">
+                {% for gamemode in gamemodes %}
+                    <option value="{{ gamemode }}">{{ gamemode }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    
+        <div class="filter">
+            <label for="race-filter">Race:</label>
+            <select id="race-filter">
+                {% for race in races %}
+                    <option value="{{ race }}">{{ race }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div id="dataset-info" class="datetime">Data DateTime: <span id="dataset-datetime"></span></div>
+
+    <div id="entry-container" class="centered-container">
+        <!-- The entry divs will be dynamically populated using JavaScript -->
+    </div>
+
+    <div id="pagination-container">
+        <button id="prev-page"> </button>
+        <button id="prev-5-pages"> </button>  <!-- New button for -5 pages -->
+        <span id="page-info">Page 1</span>
+        <button id="next-5-pages"> </button>  <!-- New button for +5 pages -->
+        <button id="next-page"> </button>
+    </div>
+
+    <script>
+        var baseURL = "{% url 'get_filtered_leaderboard' %}";
+        var totalEntriesURL = "{% url 'get_total_count' %}";
+        var currentPage = 1;
+        var entriesPerPage = 50;
+
+        function updateTable() {
+            document.getElementById('page-info').textContent = 'Page ' + currentPage;
+
+            var season = document.getElementById('season-filter').value;
+            var gamemode = document.getElementById('gamemode-filter').value;
+            var race = document.getElementById('race-filter').value;
+
+            var start = (currentPage - 1) * entriesPerPage;
+            var end = start + entriesPerPage;
+
+            fetch(`${totalEntriesURL}?season=${season}&gamemode=${gamemode}&race=${unformatRace(race)}`)
+            .then(response => response.json())
+            .then(responseData => {
+                totalEntries = responseData.total_count;  // Assign the total count to totalEntries
+
+                // Fetch current page data
+                fetch(`${baseURL}?season=${season}&gamemode=${gamemode}&race=${unformatRace(race)}&range=${start}-${end}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updateEntryContainer(data, unformatRace(race));
+
+                        // Update page info and surrounding pages
+                        var totalPages = Math.ceil(totalEntries / entriesPerPage);
+                        var startPage = Math.max(1, currentPage - 2);
+                        var endPage = Math.min(totalPages, startPage + 4);
+
+                            document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+
+                            // Enable/disable "Next" and "Previous" buttons based on current page
+                            document.getElementById('prev-page').disabled = currentPage <= 1;
+                            document.getElementById('next-page').disabled = currentPage >= totalPages;
+
+                            // Disable "Next" button if there is no next page
+                            if (currentPage >= totalPages) {
+                                document.getElementById('next-page').disabled = true;
+                            } else {
+                                document.getElementById('next-page').disabled = false;
+                            }
+
+                            // Enable/disable "Prev-5" and "Next-5" buttons based on current page
+                            document.getElementById('prev-5-pages').disabled = currentPage <= 5;
+                            document.getElementById('next-5-pages').disabled = currentPage + 5 >= totalPages;
+
+                            // Disable "Next-5" button if there are no next 5 pages
+                            if (currentPage + 5 >= totalPages) {
+                                document.getElementById('next-5-pages').disabled = true;
+                            } else {
+                                document.getElementById('next-5-pages').disabled = false;
+                            }
+                        })
+                        .catch(error => console.error('Error fetching data:', error));
+                })
+                .catch(error => console.error('Error fetching total count:', error));
+
+                // Fetch dataset datetime separately
+                fetch(`${totalEntriesURL}?season=${season}&gamemode=${gamemode}&race=all`)
+                    .then(response => response.json())
+                    .then(responseData => {
+                        const datasetDatetime = responseData.dataset_datetime;
+
+                        // Update the dataset datetime element
+                        const datasetDatetimeElement = document.getElementById('dataset-datetime');
+                        if (datasetDatetimeElement) {
+                            datasetDatetimeElement.textContent = datasetDatetime;
+                        }
+                    })
+                    .catch(error => console.error('Error fetching dataset datetime:', error));
+            }
+
+        function updateOnLoad() {
+            updateTable();
+        }
+
+        function handleFilterChange() {
+            currentPage = 1;
+            updateTable();
+        }
+
+        function updateEntryContainer(data, race) {
+            var entryContainer = document.getElementById('entry-container');
+            entryContainer.innerHTML = '';
+
+            var columnNamesDiv = document.createElement('div');
+            columnNamesDiv.className = 'entry-card';
+            columnNamesDiv.innerHTML = `
+                    <div class="column-name rank_left">Rank</div>
+                    <div class="column-name division-avatars"></div>
+                    <div class="column-name avatars-battle-tags">BattleTags</div>
+                    <div class="column-name race">Race</div>
+                    <div class="column-name wins">Wins</div>
+                    <div class="column-name losses">Losses</div>
+                    <div class="column-name draws">Draws</div>
+                    <div class="column-name win-loss-ratio">W/L</div>
+                    <div class="column-name mmr">MMR</div>
+            `;
+            entryContainer.appendChild(columnNamesDiv);
+
+            data.forEach(entry => {
+                var entryCard = document.createElement('div');
+                entryCard.className = 'entry-card';
+
+                var rankDiv = document.createElement('div');
+                rankDiv.className = 'rank';
+
+                console.log(race)
+
+                if (race !== 'all') {
+                    var rankText = document.createElement('span');
+                    rankText.textContent = `(${entry.rank})`;
+                    rankText.className = 'global-rank';  // Add a class for styling global rank
+                    rankDiv.appendChild(rankText);
+
+                    var localRankText = document.createElement('span');
+                    localRankText.textContent = entry.local_rank;
+                    localRankText.className = 'local-rank';  // Add a class for styling local rank
+                    rankDiv.appendChild(localRankText);
+                } else {
+                    rankDiv.textContent = entry.rank;
+                }
+
+                entryCard.appendChild(rankDiv);
+
+                var divisionDiv = document.createElement('div');
+                divisionDiv.className = 'division';
+                divisionDiv.textContent = entry.division;
+
+                var divisionElement = document.createElement('img');
+                divisionElement.src = `/static/myapp/common/img/Ranked/simplified/rankedBadge_simplified_${entry.division}.png`;
+                divisionElement.className = 'division-avatars';
+                entryCard.appendChild(divisionElement);
+
+                var avatarsBattleTagsDiv = document.createElement('div');
+                avatarsBattleTagsDiv.className = 'avatars-battle-tags';
+
+                var avatarIds = entry.avatarId.replace(/['\[\]]/g, '').split(', ');
+                var battleTags = entry.player_battle_tags.split(', ');
+
+                for (var i = 0; i < Math.max(avatarIds.length, battleTags.length); i++) {
+                    var avatarId = avatarIds[i] || '';
+                    var battleTag = battleTags[i] || '';
+                    
+                    var [username, tag] = battleTag.split('#');
+                    var avatarBattleTagContainer = document.createElement('a');
+                    avatarBattleTagContainer.className = 'avatar-battle-tag-container';
+
+                    avatarBattleTagContainer.href = `/player/${encodeURIComponent(username)}/${encodeURIComponent(tag)}/`;
+
+                    var avatarElement = document.createElement('img');
+                    var imagePath = (avatarId.trim() === "") ? `/static/myapp/common/img/Portraits/p003.png` : `/static/myapp/common/img/Portraits/${avatarId}.png`;
+
+                    avatarElement.src = imagePath;
+                    avatarElement.className = 'avatars';
+                    avatarBattleTagContainer.appendChild(avatarElement);
+
+                    var battleTagDiv = document.createElement('div');
+                    battleTagDiv.className = 'battle-tag';
+                    battleTagDiv.textContent = battleTag;
+                    avatarBattleTagContainer.appendChild(battleTagDiv);
+                    avatarsBattleTagsDiv.appendChild(avatarBattleTagContainer);
+                }
+
+                entryCard.appendChild(avatarsBattleTagsDiv);
+
+                var raceDiv = document.createElement('div');
+                raceDiv.className = 'race';
+                entryCard.className = 'entry-card race ' + entry.race.toLowerCase();
+                raceDiv.classList.add(entry.race.toLowerCase());
+                raceDiv.textContent = formatRace(entry.race);
+                entryCard.appendChild(raceDiv);
+
+                var winsDiv = document.createElement('div');
+                winsDiv.className = 'wins';
+                winsDiv.textContent = entry.wins;
+                entryCard.appendChild(winsDiv);
+
+                var lossesDiv = document.createElement('div');
+                lossesDiv.className = 'losses';
+                lossesDiv.textContent = entry.losses;
+                entryCard.appendChild(lossesDiv);
+
+                var drawsDiv = document.createElement('div');
+                drawsDiv.className = 'draws';
+                drawsDiv.textContent = entry.draws;
+                entryCard.appendChild(drawsDiv);
+
+                var winLossRatioDiv = document.createElement('div');
+                winLossRatioDiv.className = 'win-loss-ratio';
+                var winLossRatio = calculateWinLossRatio(entry.wins, entry.losses);
+                winLossRatioDiv.textContent = `${winLossRatio}`;
+                if (winLossRatio < 1) {
+                    winLossRatioDiv.style.backgroundColor = 'red';
+                } if (Math.abs(winLossRatio - 1) < 0.01) {
+                    winLossRatioDiv.style.backgroundColor = 'orange';
+                } else {
+                    winLossRatioDiv.style.backgroundColor = 'green';
+        }
+
+        entryCard.appendChild(winLossRatioDiv);
+
+                var mmrDiv = document.createElement('div');
+                mmrDiv.className = 'mmr';
+                mmrDiv.textContent = entry.mmr;
+                entryCard.appendChild(mmrDiv);
+
+                entryContainer.appendChild(entryCard);
+            });
+        }
+
+        function formatRace(race) {
+            return race.replace(/_/g, ' ').replace(/\w\S*/g, function (word) {
+                return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+            });
+        }
+        function unformatRace(formattedRace) {
+            // Convert back to lowercase and replace spaces with underscores
+            return formattedRace.toLowerCase().replace(/\s/g, '_');
+        }
+        function calculateWinLossRatio(wins, losses) {
+            wins = parseInt(wins);
+            losses = parseInt(losses);
+
+            if (losses === 0) {
+                return '∞';
+            } else {
+                var ratio = (wins / losses).toFixed(2);
+                return ratio;
+            }
+        } 
+        function createClickHandler(tag) {
+            return function(event) {
+                // Open the link in a new tab when the scroll wheel is clicked
+                if (event.button === 1) {
+                    var link = this.getAttribute('data-href');
+                    window.open(link, '_blank');
+                } else {
+                    window.location.href = `/player/${tag}`;
+                }
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var seasonFilter = document.getElementById('season-filter');
+            var seasons = Array.from(seasonFilter.options).map(option => option.value);
+            var highestSeason = Math.max(...seasons);
+            seasonFilter.value = highestSeason;
+            updateOnLoad();
+            updateTable();
+        });
+        document.getElementById('season-filter').addEventListener('change', handleFilterChange);
+        document.getElementById('gamemode-filter').addEventListener('change', handleFilterChange);
+        document.getElementById('race-filter').addEventListener('change', handleFilterChange);
+        document.getElementById('prev-page').addEventListener('click', function () {
+            if (currentPage > 1) {
+                currentPage--;
+                updateTable();
+            }
+        });
+        document.getElementById('next-page').addEventListener('click', function () {
+            currentPage++;
+            updateTable();
+        });
+        document.getElementById('prev-5-pages').addEventListener('click', function () {
+            if (currentPage > 5) {
+                currentPage -= 5;
+                updateTable();
+            } else {
+                currentPage = 1;
+                updateTable();
+            }
+        });
+        document.getElementById('next-5-pages').addEventListener('click', function () {
+            currentPage = Math.min(currentPage + 5, Math.ceil(totalEntries / entriesPerPage));
+            updateTable();
+        });
+
+    </script>
+{% endblock %}

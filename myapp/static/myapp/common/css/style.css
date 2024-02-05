@@ -1,0 +1,661 @@
+/* style.css */
+
+@font-face {
+    font-family: 'ThorndaleRegular';
+    src: url('/static/myapp/common/fonts/Thorndale Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: linear-gradient(to bottom, rgba(61, 68, 161, 0.1) 80%, rgba(0, 161, 161, 0.4) 100%), url('/static/myapp/common/img/nightelfbackground.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100%;
+    background-attachment: fixed; /* Ensures the background stays fixed while scrolling */
+}
+
+nav {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 0px;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    transition: background-color 0.3s;
+}
+
+nav a {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: 0.3s;
+    font-weight: bold;
+}
+
+.logo-container {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 40px;
+    max-width: 100px;
+    max-height: 60px;
+}
+
+.logo-container img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+nav a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.content-container {
+    text-align: center;
+    margin-top: 100px;
+    color: #fff;
+    min-height: 100vh;
+}
+
+.leaderboard-header {
+    text-align: left;
+    padding-left: 20px; /* Adjust the left padding as needed */
+    background-color: #00000052;
+}
+
+.leaderboard-header h1 {
+    color: #fff;
+    margin: 0; /* Remove margin from h1 */
+}
+
+#entry-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: 14%;
+    margin-right: 14%;
+}
+
+.bottom-text-container {
+    background-color: #333; /* Set the background color of the container */
+    color: #fff; /* Set the text color */
+    text-align: center;
+    padding: 10px; /* Add padding to the content */
+    margin-top: 50px;
+    opacity: 50%;
+}
+
+.profile-container {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: rgba(0, 0, 0, 0.582);
+    border-radius: 2%;
+    margin-top: 1%;
+    margin-bottom: 1%;
+    margin-left: 14%;
+    margin-right: 14%;
+    box-sizing: border-box;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden; /* Ensure that child elements don't overflow */
+    z-index: -2;
+
+
+    /* 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.8; 
+    */
+}
+
+.wallpaper-container {
+    position: absolute;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center; /* Center the background image */
+    background-size: initial;
+    background-position: center;
+    background-size: 50%;
+    background-repeat: no-repeat;
+    opacity: 0.6;
+    z-index: -1;
+}
+
+.summary-container {
+    top: 0;
+    background-color: rgba(0, 255, 170, 0.144);
+    border-radius: 10px;
+    padding-right: 3%;
+}
+
+.left-align {
+    text-align: left;
+    font-weight: bold;
+    padding-left: 5%;
+    font-size: 12px;
+}
+
+.entry-card {
+    display: flex;
+    flex-wrap: wrap;
+    background-color: rgba(0, 0, 0, 0.582);
+    border-radius: 2%;
+    padding: 0px;
+    margin: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.entry-card div {
+    margin: 0px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.entry-card .wins,
+.entry-card .losses,
+.entry-card .draws {
+    flex: 0 0 5%;
+}
+
+.bold-text {
+    font-weight: bold;
+}
+
+.neonText {
+    font-size: 20px;
+    animation: flicker 4.5s infinite alternate;
+    color: #fff;
+    text-shadow:
+        0 0 7px #fff,
+        0 0 10px #fff,
+        0 0 21px #fff,
+        0 0 42px #0fa,
+        0 0 82px #0fa,
+        0 0 92px #0fa,
+        0 0 102px #0fa,
+        0 0 151px #0fa;
+}
+
+/* Flickering animation */
+@keyframes flicker {
+    
+    0%, 18%, 22%, 25%, 53%, 57%, 100% {
+  
+        text-shadow:
+        0 0 4px #fff,
+        0 0 11px #fff,
+        0 0 19px #fff,
+        0 0 40px #0fa,
+        0 0 80px #0fa,
+        0 0 90px #0fa,
+        0 0 100px #0fa,
+        0 0 150px #0fa;
+    
+    }
+    
+    20%, 24%, 55% {        
+        text-shadow: none;
+    }    
+  }
+  
+
+.entry-card .avatars-battle-tags {
+    flex: 0 0 30%;
+}
+
+.entry-card .mmr {
+    flex: 0 0 5%;
+    color: rgb(136, 255, 0);
+    min-width: 8%;
+}
+
+.entry-card .rank {
+    font-weight: bold;
+    margin-left: 3%;
+    min-width: 8%;
+}
+
+.entry-card .race {
+    flex: 0 0 10%;
+}
+
+.entry-card .division {
+    flex: 0 0 1%;
+}
+
+.entry-card .battle-tags {
+    flex: 1;
+}
+
+.avatar-battle-tag-container {
+    display: flex;
+    align-items: center;
+    background-color: rgba(12, 91, 105, 0.144);
+    text-align: left;
+    flex: 0 50% 100%;
+}
+
+.avatar-battle-tag-container {
+    text-decoration: none; /* Remove underlining */
+    color: #ffffff; /* Set the text color */
+    cursor: pointer; /* Change cursor on hover to indicate it's clickable */
+}
+
+.avatar-battle-tag-container:hover {
+    filter: brightness(150%); 
+    transition: filter 0.3s ease;
+    cursor: pointer;
+}
+
+.division-avatars {
+    max-width: 30px;
+    max-height: 30px;
+    
+}
+
+.avatars {
+    display: flex;
+    width: 30px;
+    height: 30px;
+    margin-left: 0px;
+    padding: 10px;
+}
+
+
+
+.battle-tag {
+    display: flex;
+}
+
+.entry-card .win-loss-ratio {
+    min-width: 6%;
+}
+
+.column-name {
+    font-weight: bold;
+}
+
+.column-name.avatars-battle-tags{
+    margin-left: 4%;
+}
+
+.column-name.gamemode {
+    flex: 0 0 5%;
+}
+
+.column-name.datetime {
+    flex: 0 0 5%;
+    min-width: 8%;
+}
+
+.column-name.rank_left {
+    display: flex;
+    margin-left: 2.5%;
+    margin-right: 4.0%;
+}
+
+.entry-card.race.human {
+    background-image: url('/static/myapp/common/img/races/PlayerProfile_ColoredCrest_Human.png');
+    background-repeat: no-repeat;
+    background-blend-mode: screen;
+    background-position-x: 25%;
+}
+
+.entry-card.race.undead {
+    background-image: url('/static/myapp/common/img/races/PlayerProfile_ColoredCrest_Undead.png');
+    background-repeat: no-repeat;
+    background-blend-mode: screen;
+    background-position-x: 25%;
+}
+
+.entry-card.race.orc {
+    background-image: url('/static/myapp/common/img/races/PlayerProfile_ColoredCrest_Orc.png');
+    background-repeat: no-repeat;
+    background-blend-mode: screen;
+    background-position-x: 25%;
+}
+
+.entry-card.race.night_elf {
+    /*background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(58, 245, 114, 0.103)), url('/static/myapp/common/img/races/PlayerProfile_ColoredCrest_NightElf.png');*/
+    background-image: url('/static/myapp/common/img/races/PlayerProfile_ColoredCrest_NightElf.png');
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    background-position-x: 25%;
+    background-position-y: 0%;
+}
+
+.entry-card.race.random {
+    background-image: url('/static/myapp/common/img/races/PlayerProfile_ColoredCrest_Random.png');
+    background-repeat: no-repeat;
+    background-blend-mode: normal;
+    background-position-x: 25%;
+    background-position-y: 0%;
+}
+
+.entry-card .race.random {
+    background: -webkit-linear-gradient(#00000038, rgb(255,255,255));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.entry-card .race.undead {
+    background: -webkit-linear-gradient(#ffffff, rgb(248, 36, 255));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.entry-card .race.orc {
+    background: -webkit-linear-gradient(#ffffff,  rgb(255, 233, 38));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.entry-card .race.night_elf {
+    background: -webkit-linear-gradient(#ffffff, rgb(4, 128, 0));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.entry-card .race.human {
+    background: -webkit-linear-gradient(#ffffff, rgb(46, 49, 255));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#prev-5-pages,
+#next-5-pages {
+    width: 20px;
+    height: 20px;
+    background-color: transparent; /* Set background color to transparent */
+    border: none;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    vertical-align: middle; /* Align vertically with the adjacent inline elements */
+    margin: 1% 0%;
+    cursor: pointer;
+    border-radius: 4px;
+
+    /* Center the image */
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+#prev-page,
+#next-page {
+    width: 40px;
+    height: 40px;
+    background-color: transparent; /* Set background color to transparent */
+    border: none;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    vertical-align: middle; /* Align vertically with the adjacent inline elements */
+    margin: 1% 1%;
+    cursor: pointer;
+    border-radius: 4px;
+
+    /* Center the image */
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+
+/* Add this to your CSS stylesheet */
+.entry-card .rank .global-rank {
+    font-size: 10px;
+    margin-right: 5px;
+}
+
+.entry-card.race.orc .rank .local-rank {
+    background: -webkit-linear-gradient(#ffffff, rgb(255, 233, 38));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.entry-card.race.night_elf .rank .local-rank {
+    background: -webkit-linear-gradient(#ffffff, rgb(4, 128, 0));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.entry-card.race.human .rank .local-rank {
+    background: -webkit-linear-gradient(#ffffff, rgb(46, 49, 255));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.entry-card.race.undead .rank .local-rank {
+    background: -webkit-linear-gradient(#ffffff, rgb(248, 36, 255));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.entry-card.race.random .rank .local-rank {
+    background: -webkit-linear-gradient(#ffffff, rgb(255, 0, 0));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#prev-5-pages,
+#prev-page {
+    background-image: url('/static/myapp/common/img/arrows/arrow-left-icon-resting.png');
+}
+
+#prev-5-pages:hover,
+#prev-page:hover {
+    background-image: url('/static/myapp/common/img/arrows/arrow-left-icon-hover.png');
+}
+
+#next-5-pages,
+#next-page {
+    background-image: url('/static/myapp/common/img/arrows/arrow-right-icon-resting.png');
+}
+
+#next-5-pages:hover,
+#next-page:hover {
+    background-image: url('/static/myapp/common/img/arrows/arrow-right-icon-hover.png');
+}
+
+
+#page-info {
+    margin: 0 10px; /* Add margin for better spacing */
+    background-color: rgba(0, 0, 0, 0.459);
+    width: fit-content;
+    padding-left: 100px;
+    padding-right: 100px;
+    border-radius: 50px;
+}
+
+
+.datetime {
+    font-size: 10px;
+    margin-bottom: 50px;
+}
+
+.custom-filters {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #00000052;
+    padding-left: 14%;
+    padding-right: 14%;
+}
+
+/* Style each filter within custom filters */
+.custom-filters select {
+    padding: 4px; /* Adjust the padding to make it smaller */
+    font-size: 12px; /* Adjust the font size to make it smaller */
+    border-radius: 2px;
+    width: 100px; /* Adjust the width as needed */
+    margin-right: 100px; /* Adjust the spacing between filters */
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.856);
+}
+
+/* Style labels within custom filters */
+.custom-filters label {
+    font-size: 14px; /* Adjust the font size for labels */
+    font-weight: bold;
+    margin-right: 5px; /* Adjust the spacing between label and select */
+}
+
+
+
+/* HOME PAGE */
+
+#search-bar {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #00000077;
+}
+
+#suggestions-container {
+    width: 60%; /* Set the desired width */
+    margin: 0 auto; /* Center the container horizontally */
+    overflow-y: auto; /* Enable vertical scrolling if needed */
+}
+
+.suggestions-container {
+    background-color: #00000052;
+    display: flex;
+    width: 60%;
+}
+
+.suggestion-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.suggestion-item:hover {
+    background-color: #f0f0f070;
+}
+
+.large-search-bar {
+    color: #fff;
+    width: 60%; /* Adjust the width as needed */
+    border-radius: 260px;
+}
+
+.suggestions-container {
+    max-height: 200px; /* Adjust the max-height as needed */
+    overflow-y: auto;
+}
+
+/* Style for the intro animation */
+
+#chart-container {
+    padding-top: 5%;
+    padding-bottom: 2%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center; /* Center content horizontally */
+
+    /* Add spacing between items */
+    gap: 15%; /* Adjust the value based on the spacing you desire */
+}
+
+#myPieChart {
+    width: 100%; /* Adjust the width as needed */
+    height: auto; /* Maintain aspect ratio */
+    color: white;
+}
+
+#divisionHistogram{
+    width: 100%; /* Adjust the width as needed */
+    height: auto; /* Maintain aspect ratio */
+    color: white;
+}
+
+#main-homepage-container{
+    padding-top: 3%;
+    padding-bottom: 3%;
+    background-color: rgba(0, 0, 0, 0.582);
+    margin-left: 14%;
+    margin-right: 14%;
+    border-radius: 1%;
+}
+
+.statstitletext {
+    font-family: 'Your_Nice_Font', sans-serif; /* Replace 'Your_Nice_Font' with the desired font name */
+    font-weight: bold;
+    font-style: italic;
+    font-size: 30px; /* Adjust the size based on your preference */
+}
+
+/* HOME PAGE END */
+
+@media only screen and (max-width: 800px) {
+    #entry-container {
+        display: flex;
+        flex-wrap: wrap;
+        padding-left: 0%;
+        padding-right: 0%;
+    }
+
+    .entry-card {
+        align-items: stretch;
+    }
+
+    .entry-card .column-name {
+        min-width: 10%;
+        text-align: center;
+    }
+
+    .avatars-battle-tags {
+        min-width: 30%;
+        text-align: center;
+    }
+
+    .entry-card .rank_left {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .entry-card .rank {
+        margin-left: 0;
+    }
+
+    .entry-card .race {
+        flex: 1;
+        margin-top: 10px;
+    }
+
+    .entry-card .division,
+    .entry-card .avatars-battle-tags,
+    .entry-card .mmr {
+        flex: 1;
+        margin-top: 10px;
+    }
+
+    .avatars {
+        margin-bottom: 5px;
+    }
+}

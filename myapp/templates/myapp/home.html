@@ -1,0 +1,227 @@
+<!-- templates/myapp/home.html -->
+{% extends 'myapp/common/base.html' %}
+{% block content %}
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+
+    <div class="leaderboard-header">
+        <h1>Home</h1>
+    </div>
+
+    <br><br>
+
+    <div class="search-container">
+        <input type="text" id="search-bar" class="large-search-bar" placeholder="Search for a player...">
+        <div id="suggestions-container" class="suggestions-container"></div>
+    </div>
+
+    <br><br><br>
+
+    <div id="main-homepage-container">
+        <br>
+        <div class="statstitletext">CURRENT SEASON STATS</div>
+
+        <div id="chart-container">
+            <div>
+                <canvas id="myPieChart" width="400" height="300"></canvas>
+            </div>
+            <div>
+                <canvas id="divisionHistogram" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var get_battle_tags_URL = "{% url 'get_battle_tags' %}";
+        var searchBar = document.getElementById('search-bar');
+        var suggestionsContainer = document.getElementById('suggestions-container');
+
+        fetch(get_battle_tags_URL)
+            .then(response => response.json())
+            .then(responseData => {
+                var playerSuggestions = responseData.battle_tags;
+
+                searchBar.addEventListener('input', function() {
+                    var searchText = searchBar.value.toLowerCase();
+                    var filteredSuggestions = playerSuggestions.filter(player => player.toLowerCase().includes(searchText));
+                    displaySuggestions(filteredSuggestions);
+                });
+            });
+
+        var get_distribution_URL = "{% url 'get_distribution' %}";
+        var myHistogramChart;
+        var distributionData;
+
+        fetch(get_distribution_URL)
+            .then(response => response.json())
+            .then(data => {
+                distributionData = data;
+                var gamemodes = Object.keys(distributionData);
+                var initialPieData = gamemodes.map(gamemode => distributionData[gamemode].games_played);
+
+                var myPieChart = createPieChart(initialPieData, gamemodes, 'myPieChart');
+                var initialHistogramLabels = Object.keys(distributionData[gamemodes[0]].division_distribution);
+                myHistogramChart = createHistogram(distributionData, initialHistogramLabels, 'divisionHistogram', gamemodes);
+            })
+            .catch(error => {
+                console.error("Error fetching distribution data:", error);
+            });
+
+        function getRandomDarkColors(count) {
+            var colors = [];
+            for (var i = 0; i < count; i++) {
+                colors.push(getRandomDarkColor());
+            }
+            return colors;
+        }
+
+        function createPieChart(data, labels, containerId) {
+            var colors = getRandomDarkColors(data.length);
+            var ctx = document.getElementById(containerId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Games played this season',
+                                color: 'white'
+                            }
+                        }
+                    },
+                    onClick: function (event, elements) {
+                        if (elements.length > 0) {
+                            var selectedGamemode = labels[elements[0].index];
+                            updateHistogram(selectedGamemode);
+                        }
+                    }
+                }
+            });
+        }
+
+        function getRandomDarkColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function createHistogram(data, labels, containerId, gamemodes) {
+            var colors = getRandomDarkColors(gamemodes.length);
+            var ctx = document.getElementById(containerId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: gamemodes.map((gamemode, index) => {
+                        var gamemodeData = data[gamemode].division_distribution;
+
+                        if (gamemodeData) {
+                            return {
+                                label: gamemode,
+                                data: labels.map(label => gamemodeData[label] || 0),
+                                backgroundColor: colors[index],
+                            };
+                        } else {
+                            console.error(`Invalid data for gamemode '${gamemode}'.`);
+                            return null;
+                        }
+                    }).filter(dataset => dataset !== null)
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'category',
+                            position: 'bottom',
+                            ticks: {
+                                color: 'gray',
+                                stepSize: 1,
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: 'white',
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Number of Players in Each Division',
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateHistogram(selectedGamemode) {
+            var histogramData = distributionData[selectedGamemode].division_distribution;
+            var histogramLabels = Object.keys(histogramData);
+            updateHistogramChart(histogramData, histogramLabels);
+        }
+
+        function updateHistogramChart(data, labels) {
+            myHistogramChart.data.labels = labels;
+            myHistogramChart.data.datasets.forEach(dataset => {
+                var gamemodeData = data[dataset.label];
+
+                if (gamemodeData) {
+                    dataset.data = labels.map(label => gamemodeData[label] || 0);
+                } else {
+                    console.error(`Invalid data for gamemode '${dataset.label}'.`);
+                }
+            });
+
+            myHistogramChart.update();
+        }
+
+        function displaySuggestions(suggestions) {
+            if (suggestions.length === 0) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            suggestionsContainer.innerHTML = '';
+
+            suggestions.forEach(player => {
+                var suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item';
+                suggestionItem.textContent = player;
+
+                suggestionItem.addEventListener('click', function() {
+                    var [username, id] = player.split('#');
+                    window.location.href = `/player/${encodeURIComponent(username)}/${id}/`;
+                });
+
+                suggestionsContainer.appendChild(suggestionItem);
+            });
+            suggestionsContainer.style.display = 'block';
+        }
+
+        document.addEventListener('click', function(event) {
+            if (!searchBar.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+    </script>
+{% endblock %}
